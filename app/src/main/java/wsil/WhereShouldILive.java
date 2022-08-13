@@ -30,7 +30,7 @@ public class WhereShouldILive {
 			CommandLine cmd = parser.parse(options, args);
 
 			// TODO get password and user passed through
-			PGSimpleDataSource ds = DatabaseConnector.CreateDatabaseSource("postgres", "password");
+			PGSimpleDataSource ds = DatabaseConnector.CreateDatabaseSource();
 			if (cmd.hasOption("updatePlaceIds")) {
 				String apiKey = cmd.getOptionValue("mapsApiKey");
 				DataUtils.UpdatePlaceIds(ds, apiKey);

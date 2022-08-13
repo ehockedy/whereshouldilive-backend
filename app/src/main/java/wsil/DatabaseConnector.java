@@ -3,7 +3,7 @@ package wsil;
 import org.postgresql.ds.PGSimpleDataSource;
 
 public class DatabaseConnector {
-    public static PGSimpleDataSource CreateDatabaseSource(String username, String password) {
+    public static PGSimpleDataSource CreateDatabaseSource() {
 		// TODO do not hard code db server, port or name
 		PGSimpleDataSource ds = new PGSimpleDataSource();
 		String[] serverNames = new String[] { "localhost" };
@@ -11,8 +11,8 @@ public class DatabaseConnector {
 		ds.setServerNames(serverNames);
 		ds.setPortNumbers(portNumbers);
 		ds.setDatabaseName("whereshouldilive");
-		ds.setUser(username);
-		ds.setPassword(password);
+		ds.setUser("postgres");
+		ds.setPassword("password");
 		return ds;
 	}
 }
