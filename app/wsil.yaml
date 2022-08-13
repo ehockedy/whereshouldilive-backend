@@ -18,12 +18,20 @@ paths:
       summary: Get ordered list of places to lived based on proximity to important places
       operationId: rankPlacesToLive
       parameters:
-        - name: limit
+        - name: placesToLive
           in: query
-          description: How many items to return at one time (max 100)
-          required: false
-          type: integer
-          format: int32
+          description: The Google maps place IDs for places to live that will be ranked based on their proximity to the important places
+          required: true
+          type: array
+          items:
+            type: string
+        - name: importantPlaces
+          in: query
+          description: The Google maps place IDs the potential places to live will be evaluated against
+          required: true
+          type: array
+          items:
+            type: string
       responses:
         "200":
           description: List of potential places to live, ranked by suitability
@@ -39,15 +47,16 @@ definitions:
     type: "object"
     required:
       - id
-      - name
+      - totalTravelTimePerMonth
     properties:
       id:
         type: integer
         format: int64
-      name:
-        type: string
-      tag:
-        type: string
+        description: Google Maps ID
+      totalTravelTimePerMonth:
+        type: integer
+        format: int64
+        description: Total time over a month travelling if lived at the place with associated id
   PlaceRankSummaries:
     type: array
     items:
