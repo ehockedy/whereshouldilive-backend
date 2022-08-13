@@ -9,6 +9,10 @@ import org.apache.commons.cli.ParseException;
 
 import org.postgresql.ds.PGSimpleDataSource;
 
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
 public class WhereShouldILive {
     public static void main(String[] args) {
         Options options = new Options();
@@ -36,6 +40,9 @@ public class WhereShouldILive {
 				DataUtils.UpdatePlaceIds(ds, apiKey);
 
 			}
+
+			// Start the server
+			SpringApplication.run(WhereShouldILive.class, args);
 		} catch (ParseException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

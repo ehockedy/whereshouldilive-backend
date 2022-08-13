@@ -9,6 +9,7 @@
 plugins {
     // Apply the application plugin to add support for building a CLI application in Java.
     id 'application'
+    id 'org.hidetake.swagger.generator' version '2.19.2'
 }
 
 repositories {
@@ -26,10 +27,49 @@ dependencies {
     implementation 'commons-cli:commons-cli:1.5.0'
     implementation 'org.postgresql:postgresql:42.4.0'
     implementation 'com.googlecode.json-simple:json-simple:1.1.1'
-    
+    implementation 'org.springframework.boot:spring-boot-starter-web:2.7.2'
+
+    // Swagger code gen deps - see pom.xml in generated dir
+    implementation 'io.swagger.core.v3:swagger-annotations:2.1.7'
+    implementation 'javax.validation:validation-api:2.0.1.Final'
+    implementation 'javax.xml.bind:jaxb-api:2.2.4'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-xml:2.9.4'
+    implementation 'org.threeten:threetenbp:1.6.0'
+    implementation 'com.github.joschi.jackson:jackson-datatype-threetenbp:2.6.4'
+    implementation 'io.springfox:springfox-oas:3.0.0'
+    implementation 'io.springfox:springfox-swagger-ui:3.0.0'
+
+    swaggerCodegen 'io.swagger.codegen.v3:swagger-codegen-cli:3.0.34'
 }
 
 application {
     // Define the main class for the application.
     mainClass = 'wsil.WhereShouldILive'
+}
+
+
+swaggerSources {
+  wsil {
+    inputFile = file('wsil.yaml')
+    code {
+      language = 'spring'
+    }
+  }
+}
+
+compileJava {
+  dependsOn {
+    swaggerSources.wsil.code
+  }
+}
+
+sourceSets {
+   main {
+      java {
+         srcDir "${buildDir}/swagger-code-wsil/src/main/java"
+      }
+      resources {
+        srcDir "${buildDir}/swagger-code-wsil/src/main/resources"
+      }
+   }
 }
