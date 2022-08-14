@@ -68,8 +68,5 @@ sourceSets {
       java {
          srcDir "${buildDir}/swagger-code-wsil/src/main/java"
       }
-      resources {
-        srcDir "${buildDir}/swagger-code-wsil/src/main/resources"
-      }
    }
 }
