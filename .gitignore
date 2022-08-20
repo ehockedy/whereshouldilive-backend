@@ -5,3 +5,6 @@
 build
 
 app/bin
+
+# Ignore application properties, since it contains sensitive information
+app/src/main/resources/application.properties

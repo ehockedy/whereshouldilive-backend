@@ -57,11 +57,10 @@ public class GoogleMapsApiHandler {
 	}
 
 	JSONObject mapsMatrixRequest(List<String> placesToTry, List<String> selectedPlaces) {
-		String key = "MOCK_KEY";
 		String origins = "place_id:" + String.join("%7Cplace_id:", placesToTry);
 		String destinations = "place_id:" + String.join("%7Cplace_id:", selectedPlaces);
 		HttpRequest request = httpRequestBuilder
-			.uri(URI.create(googleMapsURL + "distancematrix/json?key=" + key + "&origins=" + origins + "&destinations=" + destinations))
+			.uri(URI.create(googleMapsURL + "distancematrix/json?key=" + apiKey + "&origins=" + origins + "&destinations=" + destinations))
 			.method("GET", HttpRequest.BodyPublishers.noBody())
 			.build();
 
