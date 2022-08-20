@@ -19,7 +19,7 @@ import io.swagger.model.PlaceRankSummaries;
 @RestController
 public class RankPlacesToLiveApiController implements RankPlacesToLiveApi {
     private static final Logger log = LoggerFactory.getLogger(RankPlacesToLiveApiController.class);
-    
+
     @Value("${api.key}")
     private String apiKey;
     private GoogleMapsApiHandler googleMapsApiHandler;
