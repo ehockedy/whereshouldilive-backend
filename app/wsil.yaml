@@ -46,13 +46,15 @@ definitions:
   PlaceRankSummary:
     type: "object"
     required:
-      - id
+      - name
       - totalTravelTimePerMonth
     properties:
-      id:
-        type: integer
-        format: int64
-        description: Google Maps ID
+      name:
+        type: string
+        description: Google Maps place name
+      success:
+        type: boolean
+        description: Whether a sucessful distance matrix element was returned for this place
       totalTravelTimePerMonth:
         type: integer
         format: int64
