@@ -23,6 +23,9 @@ paths:
           name: requestBody
           schema:
             type: object
+            required:
+              - placesToLive
+              - importantPlaces
             properties:
               placesToLive:
                 description: The Google maps place IDs for places to live that will be ranked based on their proximity to the important places
