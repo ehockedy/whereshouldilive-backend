@@ -14,24 +14,26 @@ produces:
   - application/json
 paths:
   /rankPlacesToLive:
-    get:
+    post:
       summary: Get ordered list of places to lived based on proximity to important places
-      operationId: rankPlacesToLive
+      consumes:
+        - application/json
       parameters:
-        - name: placesToLive
-          in: query
-          description: The Google maps place IDs for places to live that will be ranked based on their proximity to the important places
-          required: true
-          type: array
-          items:
-            type: string
-        - name: importantPlaces
-          in: query
-          description: The Google maps place IDs the potential places to live will be evaluated against
-          required: true
-          type: array
-          items:
-            type: string
+        - in: body
+          name: requestBody
+          schema:
+            type: object
+            properties:
+              placesToLive:
+                description: The Google maps place IDs for places to live that will be ranked based on their proximity to the important places
+                type: array
+                items:
+                  type: string
+              importantPlaces:
+                description: The Google maps place IDs the potential places to live will be evaluated against
+                type: array
+                items:
+                  $ref: '#/definitions/ImportantPlace'
       responses:
         "200":
           description: List of potential places to live, ranked by suitability
@@ -43,6 +45,19 @@ paths:
             $ref: '#/definitions/Error'
 
 definitions:
+  ImportantPlace:
+    type: "object"
+    required:
+      - id
+      - visitsPerMonth
+    properties:
+      id:
+        type: string
+        description: Google Maps place id
+      visitsPerMonth:
+        type: number
+        format: float
+        description: Number of times this place is visited in one month
   PlaceRankSummary:
     type: "object"
     required:
@@ -56,8 +71,8 @@ definitions:
         type: boolean
         description: Whether a sucessful distance matrix element was returned for this place
       totalTravelTimePerMonth:
-        type: integer
-        format: int64
+        type: number
+        format: float
         description: Total time over a month travelling if lived at the place with associated id
   PlaceRankSummaries:
     type: array
