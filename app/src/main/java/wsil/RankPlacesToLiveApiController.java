@@ -89,7 +89,7 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi {
 
             // We need to get the shortest travel times between the currently considered place to live and all the important
             // places across all modes of transport.
-            Map<String, JourneySummary> journeySummaries = aggregateDistanceMatrices(mapMatrixResponses, importantPlaceIds, placeToLiveIdx);
+            Map<String, JourneySummary> journeySummaries = aggregateDistanceMatrices(mapMatrixResponses, importantPlaceIds, placeToLiveIdx, placeToLiveName);
 
             // Calculate travel time between current place to live and all imporant places
             Optional<Float> ttpm = calculateTravelTimePerMonth(journeySummaries, importantPlaces);
@@ -141,7 +141,8 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi {
     Map<String, JourneySummary> aggregateDistanceMatrices(
         Map<TravelMode, DistanceMatrix> matrixMapResponses,
         List<String> importantPlaceIds,
-        int placeToLiveIdx
+        int placeToLiveIdx,
+        String placeToLiveName
     ) {
         Iterator<Entry<TravelMode, DistanceMatrix>> matrixIterator = matrixMapResponses.entrySet().iterator();
         Map<String, JourneySummary> journeySummaries = new HashMap<>(); // Map that stores the best travel results i.e. with shortest duration for each important place
@@ -154,13 +155,18 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi {
             // Iterate over the important places
             int importantPlaceIdx = 0;
             for (DistanceMatrixElement distanceResult: distanceResultsToImportantPlaces) {
-                //String importantPlaceName = distanceMatrix.destinationAddresses[importantPlaceIdx];
                 String importantPlaceName = importantPlaceIds.get(importantPlaceIdx);
-                Float ttpm = Float.valueOf(distanceResult.duration.inSeconds);
+
+                // Maps API returns error if origin and destination are the same, but for this service it results
+                // in a travel time of 0 (very good), we want to keep it.
+                Boolean isSamePlace = importantPlaceName.equals(placeToLiveName);
+                Float ttpm = isSamePlace || !distanceResult.status.equals(DistanceMatrixElementStatus.OK)
+                    ? 0F
+                    : Float.valueOf(distanceResult.duration.inSeconds);
                 JourneySummary result = new JourneySummary()
                     .travelTimePerMonth(ttpm)
                     .travelMode(googleTravelModeToSwaggerTravelMode(travelMode))
-                    .success(distanceResult.status.equals(DistanceMatrixElementStatus.OK))
+                    .success(distanceResult.status.equals(DistanceMatrixElementStatus.OK) || isSamePlace)
                     .name(importantPlaceName);
 
                 // Decide if the result between the current place to live, and this important place
