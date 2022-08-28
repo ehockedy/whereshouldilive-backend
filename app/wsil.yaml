@@ -103,7 +103,7 @@ definitions:
       - name
       - success
       - travelMode
-      - travelTimePerMonth
+      - travelTime
     properties:
       name:
         type: string
@@ -112,10 +112,10 @@ definitions:
         type: boolean
         description: Whether a route was found between this important place and the corresponding place to live
       travelMode:
-        description: Travel mode that resulted in the shortest travel time per month
+        description: Travel mode that resulted in the shortest travel time
         $ref: '#/definitions/TravelModesEnum'
-      travelTimePerMonth:
-        description: Amount of time spent travelling per month
+      travelTime:
+        description: Amount of time spent travelling
         type: number
         format: float
   Error:

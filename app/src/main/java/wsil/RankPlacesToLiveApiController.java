@@ -118,7 +118,7 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi {
             }
             JourneySummary importantPlaceResult = journeySummaries.get(importantPlace.getId());
             if (importantPlaceResult.isSuccess()) {
-                total += importantPlaceResult.getTravelTimePerMonth() * importantPlace.getVisitsPerMonth();
+                total += importantPlaceResult.getTravelTime() * importantPlace.getVisitsPerMonth();
             } else {
                 // Distance calculation could not be calculated for one of the places, so evaluation
                 // of this place to live is invalid.
@@ -164,7 +164,7 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi {
                     ? 0F
                     : Float.valueOf(distanceResult.duration.inSeconds);
                 JourneySummary result = new JourneySummary()
-                    .travelTimePerMonth(ttpm)
+                    .travelTime(ttpm)
                     .travelMode(googleTravelModeToSwaggerTravelMode(travelMode))
                     .success(distanceResult.status.equals(DistanceMatrixElementStatus.OK) || isSamePlace)
                     .name(importantPlaceName);
@@ -176,7 +176,7 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi {
                     // Does not matter is new entry is also not success, this is handled later.
                     journeySummaries.put(importantPlaceName, result);
                 } else if (distanceResult.status == DistanceMatrixElementStatus.OK &&
-                    ttpm.compareTo(journeySummaries.get(importantPlaceName).getTravelTimePerMonth()) < 0) {
+                    ttpm.compareTo(journeySummaries.get(importantPlaceName).getTravelTime()) < 0) {
                     // Shorter time to travel, so is best
                     journeySummaries.put(importantPlaceName, result);
                 }
