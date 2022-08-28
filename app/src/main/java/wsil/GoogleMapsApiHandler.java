@@ -7,6 +7,7 @@ import com.google.maps.DistanceMatrixApiRequest;
 import com.google.maps.GeoApiContext;
 import com.google.maps.errors.ApiException;
 import com.google.maps.model.DistanceMatrix;
+import com.google.maps.model.TravelMode;
 
 public class GoogleMapsApiHandler {
 	private static GeoApiContext context;
@@ -16,10 +17,11 @@ public class GoogleMapsApiHandler {
 	}
 
 	// Synchronously make Google maps distance matrix API call
-	DistanceMatrix mapsMatrixRequest(List<String> placesToTry, List<String> selectedPlaces) throws ApiException, InterruptedException, IOException {
+	DistanceMatrix mapsMatrixRequest(List<String> placesToTry, List<String> selectedPlaces, TravelMode travelMode) throws ApiException, InterruptedException, IOException {
 		return new DistanceMatrixApiRequest(context)
 			.origins(placesToTry.toArray(new String[placesToTry.size()]))
 			.destinations(selectedPlaces.toArray(new String[selectedPlaces.size()]))
+			.mode(travelMode)
 			.await();
 	}
 }
