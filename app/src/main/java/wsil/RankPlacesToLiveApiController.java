@@ -29,15 +29,17 @@ import com.google.maps.model.DistanceMatrixElementStatus;
 import com.google.maps.model.TravelMode;
 
 import io.swagger.api.RankPlacesToLiveApi;
+import io.swagger.api.RankPlacesToLiveStubApi;
 import io.swagger.model.ImportantPlace;
 import io.swagger.model.PlaceRankSummaries;
 import io.swagger.model.PlaceRankSummary;
 import io.swagger.model.RankPlacesToLiveBody;
+import io.swagger.model.RankPlacesToLiveStubBody;
 import io.swagger.model.TravelModesEnum;
 import io.swagger.model.JourneySummary;
 
 @RestController
-public class RankPlacesToLiveApiController implements RankPlacesToLiveApi {
+public class RankPlacesToLiveApiController implements RankPlacesToLiveApi, RankPlacesToLiveStubApi {
     private static final Logger logger = LoggerFactory.getLogger(RankPlacesToLiveApiController.class);
 
     @Value("${api.key}")
@@ -186,6 +188,54 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi {
         return journeySummaries;
     }
 
+    @Override
+    public ResponseEntity<PlaceRankSummaries> rankPlacesToLive(@Valid RankPlacesToLiveStubBody body) {
+        // To save having to make API call each time (could geet chanrged), just provide some mock data
+        PlaceRankSummaries placeRankSummaries = new PlaceRankSummaries();
+        placeRankSummaries.add(
+            new PlaceRankSummary()
+                .name("Testville")
+                .success(true)
+                .totalTravelTimePerMonth(2500f)
+                .fastestJourneys(new ArrayList<>() {
+                    {
+                        add(new JourneySummary()
+                            .name("Homeington")
+                            .success(true)
+                            .travelMode(TravelModesEnum.DRIVING)
+                            .travelTime(2000f));
+                        add(new JourneySummary()
+                            .name("Housely")
+                            .success(true)
+                            .travelMode(TravelModesEnum.PUBLIC_TRANSPORT)
+                            .travelTime(500f));
+                    }
+                })
+        );
+        placeRankSummaries.add(
+            new PlaceRankSummary()
+                .name("Stubhampton")
+                .success(true)
+                .totalTravelTimePerMonth(2750f)
+                .fastestJourneys(new ArrayList<>() {
+                    {
+                        add(new JourneySummary()
+                            .name("Homeington")
+                            .success(true)
+                            .travelMode(TravelModesEnum.DRIVING)
+                            .travelTime(1250f));
+                        add(new JourneySummary()
+                            .name("Housely")
+                            .success(true)
+                            .travelMode(TravelModesEnum.PUBLIC_TRANSPORT)
+                            .travelTime(1500f));
+                    }
+                })
+        );
+        return new ResponseEntity<PlaceRankSummaries>(placeRankSummaries, HttpStatus.OK);
+    }
+
+    // TODO move to helper class
     // Converts to this API enum to Google Maps enum value
     TravelMode swaggerTravelModeToGoogleTravelMode(TravelModesEnum mode) {
         switch(mode) {
