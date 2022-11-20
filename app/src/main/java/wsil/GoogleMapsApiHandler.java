@@ -17,11 +17,16 @@ public class GoogleMapsApiHandler {
 	}
 
 	// Synchronously make Google maps distance matrix API call
+	// Since using place IDs, need to append place_id: to each id
 	DistanceMatrix mapsMatrixRequest(List<String> placesToTry, List<String> selectedPlaces, TravelMode travelMode) throws ApiException, InterruptedException, IOException {
 		return new DistanceMatrixApiRequest(context)
-			.origins(placesToTry.toArray(new String[placesToTry.size()]))
-			.destinations(selectedPlaces.toArray(new String[selectedPlaces.size()]))
+			.origins(mapPlaceIDListToPlaceIDArray(placesToTry))
+			.destinations(mapPlaceIDListToPlaceIDArray(selectedPlaces))
 			.mode(travelMode)
 			.await();
+	}
+
+	private String[] mapPlaceIDListToPlaceIDArray(List<String> placeList) {
+		return placeList.stream().map((place) -> "place_id:" + place).toList().toArray(new String[placeList.size()]);
 	}
 }
