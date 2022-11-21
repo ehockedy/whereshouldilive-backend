@@ -1,0 +1,3 @@
+[submodule "wsil-shared"]
+	path = wsil-shared
+	url = https://github.com/ehockedy/wsil-shared.git

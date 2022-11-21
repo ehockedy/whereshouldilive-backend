@@ -51,7 +51,7 @@ application {
 
 swaggerSources {
   wsil {
-    inputFile = file('wsil.yaml')
+    inputFile = file('../wsil-shared/wsil.yaml')
     code {
       language = 'spring'
     }

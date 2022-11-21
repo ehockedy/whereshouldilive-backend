@@ -2,7 +2,7 @@
 Backend code for the Where Should I Live? web application. This service provides an REST endpoint that can be used to calculate a ranking of places to live based on the time to travel to a set of selected places.
 
 ## Implementation Details
-- The API and model are generated via swagger codegen. See steps below to generate this code. See Swgger definition [here](app/wsil.yaml)
+- The API and model are generated via swagger codegen. See steps below to generate this code. See Swgger definition [here](https://github.com/ehockedy/wsil-shared/blob/main/wsil.yaml)
 - The travel duration values are obtained using the Google Maps API. The `placesToLive` and `importantPlaces` arrays take any place name or location ID that can be resolved in Google Maps. See https://developers.google.com/maps/documentation/distance-matrix
 
 ## Installation
