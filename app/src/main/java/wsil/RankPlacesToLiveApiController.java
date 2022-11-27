@@ -54,8 +54,12 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi, RankP
     @Override
     public ResponseEntity<PlaceRankSummaries> rankPlacesToLive(@Valid RankPlacesToLiveBody body) {
         // Extract a list of just the ids and ttpms
+        List<String> placesToLive = body.getPlacesToLive();
         List<ImportantPlace> importantPlaces = body.getImportantPlaces();
         List<String> importantPlaceIds = importantPlaces.stream().map(place -> place.getId()).toList();
+        if (importantPlaceIds.isEmpty() || placesToLive.isEmpty()) {
+            return new ResponseEntity<PlaceRankSummaries>(HttpStatus.BAD_REQUEST);
+        }
 
         // Construct list of possible travel mode types
         List<TravelMode> travelModes = body.getTravelModes() == null
@@ -67,7 +71,7 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi, RankP
         try {
             for (TravelMode mode: travelModes) {
                 mapMatrixResponses.put(mode, this.googleMapsApiHandler.mapsMatrixRequest(
-                    body.getPlacesToLive(),
+                    placesToLive,
                     importantPlaceIds,
                     mode)
                 );
@@ -84,7 +88,7 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi, RankP
         // Every row corresponds to a potential place to live. For each one, calulate the total time travelling
         // per month. Then rank the places to live.
         PlaceRankSummaries placeRankSummaries = new PlaceRankSummaries();
-        ListIterator<String> it = body.getPlacesToLive().listIterator();
+        ListIterator<String> it = placesToLive.listIterator();
         while (it.hasNext()) {
             int placeToLiveIdx = it.nextIndex();
             String placeToLiveName = it.next();
