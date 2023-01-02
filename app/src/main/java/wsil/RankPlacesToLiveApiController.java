@@ -1,6 +1,11 @@
 package wsil;
 
 import java.io.IOException;
+import java.time.DayOfWeek;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalTime;
+import java.time.temporal.TemporalAdjusters;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
@@ -11,6 +16,7 @@ import java.util.ListIterator;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.TimeZone;
 
 import javax.annotation.PostConstruct;
 import javax.validation.Valid;
@@ -26,6 +32,7 @@ import com.google.maps.errors.ApiException;
 import com.google.maps.model.DistanceMatrix;
 import com.google.maps.model.DistanceMatrixElement;
 import com.google.maps.model.DistanceMatrixElementStatus;
+import com.google.maps.model.DistanceMatrixRow;
 import com.google.maps.model.TravelMode;
 
 import io.swagger.api.RankPlacesToLiveApi;
@@ -37,6 +44,7 @@ import io.swagger.model.RankPlacesToLiveBody;
 import io.swagger.model.RankPlacesToLiveStubBody;
 import io.swagger.model.TravelModesEnum;
 import io.swagger.model.JourneySummary;
+import io.swagger.model.LatLng;
 
 @RestController
 public class RankPlacesToLiveApiController implements RankPlacesToLiveApi, RankPlacesToLiveStubApi {
@@ -57,7 +65,8 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi, RankP
         List<String> placesToLive = body.getPlacesToLive();
         List<ImportantPlace> importantPlaces = body.getImportantPlaces();
         List<String> importantPlaceIds = importantPlaces.stream().map(place -> place.getId()).toList();
-        if (importantPlaceIds.isEmpty() || placesToLive.isEmpty()) {
+        LatLng latLng = body.getLatLng();
+        if (importantPlaceIds.isEmpty() || placesToLive.isEmpty() || latLng == null) {
             return new ResponseEntity<PlaceRankSummaries>(HttpStatus.BAD_REQUEST);
         }
 
@@ -69,12 +78,10 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi, RankP
         // Make distance matrix requests, one for each travel mode type
         Map<TravelMode, DistanceMatrix> mapMatrixResponses = new HashMap<>();
         try {
+            TimeZone timezone = this.googleMapsApiHandler.mapsTimezoneRequest(latLng);
             for (TravelMode mode: travelModes) {
-                mapMatrixResponses.put(mode, this.googleMapsApiHandler.mapsMatrixRequest(
-                    placesToLive,
-                    importantPlaceIds,
-                    mode)
-                );
+                DistanceMatrix distanceMatrix = makeDistanceMatrixRequests(placesToLive, importantPlaceIds, mode, timezone);
+                mapMatrixResponses.put(mode, distanceMatrix);
             }
         } catch (ApiException e) {
             e.printStackTrace();
@@ -132,6 +139,70 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi, RankP
             }
         }
         return Optional.of(total);
+    }
+
+    Instant createDepartureTimeInstant(int hour, int minute, DayOfWeek dayOfWeek, TimeZone timezone) {
+        return LocalTime
+            .of(hour, minute)
+            .atDate(LocalDate.now().with(TemporalAdjusters.next(dayOfWeek)))
+            .atZone(timezone.toZoneId())
+            .toInstant();
+    }
+
+    /**
+     * Make the distance matrix request, and if applicable make more to get best coverage over
+     * different times of day and days of week. This meaks it's not tied to user's current time,
+     * or closures or available departure time.
+     */
+    DistanceMatrix makeDistanceMatrixRequests(
+        List<String> placesToLive,
+        List<String> importantPlaceIds,
+        TravelMode travelMode,
+        TimeZone timezone
+    ) throws ApiException, InterruptedException, IOException {
+        // Use (local) noon next monday to ensure a consistent time to evaluate all journeys from.
+        Instant noonNextMonday = createDepartureTimeInstant(12, 0, DayOfWeek.MONDAY, timezone);
+        DistanceMatrix baseDistanceMatrix = this.googleMapsApiHandler.mapsMatrixRequest(
+            placesToLive,
+            importantPlaceIds,
+            travelMode,
+            noonNextMonday
+        );
+
+        // Only need to try different times of travel if on public transport, since it can vary so much
+        if (travelMode.equals(TravelMode.TRANSIT) && baseDistanceMatrix != null && baseDistanceMatrix.rows != null) {
+            // Fairly arbitrary list of departure times, but covers most of the day and week
+            List<Instant> departureInstants = new ArrayList<Instant>(List.of(
+                createDepartureTimeInstant(7, 0, DayOfWeek.MONDAY, timezone),
+                createDepartureTimeInstant(9, 30, DayOfWeek.MONDAY, timezone),
+                createDepartureTimeInstant(16, 0, DayOfWeek.MONDAY, timezone),
+                createDepartureTimeInstant(20, 30, DayOfWeek.MONDAY, timezone)
+            ));
+            // Iterate over the departure times and replace the current travel time if faster
+            for (int timeIdx = 0; timeIdx < departureInstants.size(); timeIdx++) {
+                Instant departureInstant = departureInstants.get(timeIdx);
+                DistanceMatrix distanceMatrix = this.googleMapsApiHandler.mapsMatrixRequest(
+                    placesToLive,
+                    importantPlaceIds,
+                    travelMode,
+                    departureInstant
+                );
+                for (int rowIdx = 0; rowIdx < baseDistanceMatrix.rows.length; rowIdx++) {
+                    final DistanceMatrixRow row = baseDistanceMatrix.rows[rowIdx];
+                    for (int colIdx = 0; colIdx < row.elements.length; colIdx++) {
+                        final DistanceMatrixElement baseElement = row.elements[colIdx];
+                        final DistanceMatrixElement comparisonElement = distanceMatrix.rows[rowIdx].elements[colIdx];
+                        if (comparisonElement.status == DistanceMatrixElementStatus.OK) {
+                            if (baseElement.status != DistanceMatrixElementStatus.OK ||
+                                baseElement.duration.inSeconds > comparisonElement.duration.inSeconds) {
+                                baseDistanceMatrix.rows[rowIdx].elements[colIdx] = comparisonElement;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return baseDistanceMatrix;
     }
 
     /**
