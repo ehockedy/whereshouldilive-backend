@@ -174,9 +174,9 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi, RankP
             // Fairly arbitrary list of departure times, but covers most of the day and week
             List<Instant> departureInstants = new ArrayList<Instant>(List.of(
                 createDepartureTimeInstant(7, 0, DayOfWeek.MONDAY, timezone),
-                createDepartureTimeInstant(9, 30, DayOfWeek.MONDAY, timezone),
-                createDepartureTimeInstant(16, 0, DayOfWeek.MONDAY, timezone),
-                createDepartureTimeInstant(20, 30, DayOfWeek.MONDAY, timezone)
+                createDepartureTimeInstant(9, 30, DayOfWeek.TUESDAY, timezone),
+                createDepartureTimeInstant(16, 0, DayOfWeek.SATURDAY, timezone),
+                createDepartureTimeInstant(20, 30, DayOfWeek.SUNDAY, timezone)
             ));
             // Iterate over the departure times and replace the current travel time if faster
             for (int timeIdx = 0; timeIdx < departureInstants.size(); timeIdx++) {
