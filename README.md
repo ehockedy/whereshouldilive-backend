@@ -14,12 +14,12 @@ api.key=GOOGLE_MAPS_API_KEY
 ## Development
 Validate Swagger:
 ``` 
-./gradlew validateSwaggerWsil
+./gradlew openApiValidate
 ``` 
 
 Generate Swagger:
 ``` 
-./gradlew generateSwaggerWsil
+./gradlew openApiGenerate
 ``` 
 
 Build:
@@ -37,25 +37,23 @@ The server should start on port 8080
 ```
 {
     "placesToLive": [
-        "Oxford,UK",
-        "Banbury,UK",
-        "Bicester,UK",
-        "Milton Keynes,UK"
+        "ChIJJTcn0yzDdkgRobE0ieoazrM",
+        "ChIJ5xOOaNPUcEgRquyg7y5e_-A"
     ],
     "importantPlaces": [
         {
-            "id": "Guildford, UK",
-            "visitsPerMonth" : 0.5
-        },
-        {
-            "id": "Lewisham, UK",
+            "id": "ChIJ31mWt6_EdUgRoajr-bKZZpQ",
             "visitsPerMonth" : 1
         },
         {
-            "id": "Chester, UK",
+            "id": "ChIJafWcYtnBekgRn_jYjbNsYkk",
             "visitsPerMonth" : 1
         }
     ],
-    "travelModes": ["driving", "public_transport"]
+    "travelModes": ["driving", "public_transport"],
+    "latLng": {
+        "lat": 51.7520,
+        "lng": 1.2577
+    }
 }
 ```

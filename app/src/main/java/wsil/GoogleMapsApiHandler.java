@@ -13,7 +13,7 @@ import com.google.maps.errors.ApiException;
 import com.google.maps.model.DistanceMatrix;
 import com.google.maps.model.TravelMode;
 
-import io.swagger.model.LatLng;
+import openapi.gen.model.LatLng;
 
 public class GoogleMapsApiHandler {
 	private static GeoApiContext context;

@@ -18,8 +18,8 @@ import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.TimeZone;
 
-import javax.annotation.PostConstruct;
-import javax.validation.Valid;
+import jakarta.annotation.PostConstruct;
+import jakarta.validation.Valid;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,19 +35,17 @@ import com.google.maps.model.DistanceMatrixElementStatus;
 import com.google.maps.model.DistanceMatrixRow;
 import com.google.maps.model.TravelMode;
 
-import io.swagger.api.RankPlacesToLiveApi;
-import io.swagger.api.RankPlacesToLiveStubApi;
-import io.swagger.model.ImportantPlace;
-import io.swagger.model.PlaceRankSummaries;
-import io.swagger.model.PlaceRankSummary;
-import io.swagger.model.RankPlacesToLiveBody;
-import io.swagger.model.RankPlacesToLiveStubBody;
-import io.swagger.model.TravelModesEnum;
-import io.swagger.model.JourneySummary;
-import io.swagger.model.LatLng;
+import openapi.gen.api.RankPlacesToLiveApi;
+import openapi.gen.model.ImportantPlace;
+import openapi.gen.model.PlaceRankSummaries;
+import openapi.gen.model.PlaceRankSummary;
+import openapi.gen.model.RankPlacesToLiveRequest;
+import openapi.gen.model.TravelModesEnum;
+import openapi.gen.model.JourneySummary;
+import openapi.gen.model.LatLng;
 
 @RestController
-public class RankPlacesToLiveApiController implements RankPlacesToLiveApi, RankPlacesToLiveStubApi {
+public class RankPlacesToLiveApiController implements RankPlacesToLiveApi {
     private static final Logger logger = LoggerFactory.getLogger(RankPlacesToLiveApiController.class);
 
     @Value("${api.key}")
@@ -59,8 +57,8 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi, RankP
         this.googleMapsApiHandler = new GoogleMapsApiHandler(this.apiKey);
     }
 
-    @Override
-    public ResponseEntity<PlaceRankSummaries> rankPlacesToLive(@Valid RankPlacesToLiveBody body) {
+    // @Override
+    public ResponseEntity<PlaceRankSummaries> rankPlacesToLive(@Valid RankPlacesToLiveRequest body) {
         // Extract a list of just the ids and ttpms
         List<String> placesToLive = body.getPlacesToLive();
         List<ImportantPlace> importantPlaces = body.getImportantPlaces();
@@ -109,10 +107,7 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi, RankP
 
             // Add to results
             placeRankSummaries.add(
-                new PlaceRankSummary()
-                    .name(placeToLiveName)
-                    .success(ttpm.isPresent())
-                    .totalTravelTimePerMonth(ttpm.orElse(0f))
+                new PlaceRankSummary(placeToLiveName, ttpm.isPresent(), ttpm.orElse(0f))
                     .fastestJourneys(new ArrayList<>(journeySummaries.values()))
             );
         }
@@ -130,7 +125,7 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi, RankP
                 return Optional.empty();
             }
             JourneySummary importantPlaceResult = journeySummaries.get(importantPlace.getId());
-            if (importantPlaceResult.isSuccess()) {
+            if (importantPlaceResult.getSuccess()) {
                 total += importantPlaceResult.getTravelTime() * importantPlace.getVisitsPerMonth();
             } else {
                 // Distance calculation could not be calculated for one of the places, so evaluation
@@ -240,15 +235,16 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi, RankP
                 Float ttpm = isSamePlace || !distanceResult.status.equals(DistanceMatrixElementStatus.OK)
                     ? 0F
                     : Float.valueOf(distanceResult.duration.inSeconds);
-                JourneySummary result = new JourneySummary()
-                    .travelTime(ttpm)
-                    .travelMode(googleTravelModeToSwaggerTravelMode(travelMode))
-                    .success(distanceResult.status.equals(DistanceMatrixElementStatus.OK) || isSamePlace)
-                    .name(importantPlaceName);
+                JourneySummary result = new JourneySummary(
+                    importantPlaceName,
+                    distanceResult.status.equals(DistanceMatrixElementStatus.OK) || isSamePlace,
+                    googleTravelModeToSwaggerTravelMode(travelMode),
+                    ttpm
+                );
 
                 // Decide if the result between the current place to live, and this important place
                 // is better than the current best result.
-                if (!journeySummaries.containsKey(importantPlaceName) || !journeySummaries.get(importantPlaceName).isSuccess()) {
+                if (!journeySummaries.containsKey(importantPlaceName) || !journeySummaries.get(importantPlaceName).getSuccess()) {
                     // No entry for this important place, or current entry was not a success so add to results map
                     // Does not matter is new entry is also not success, this is handled later.
                     journeySummaries.put(importantPlaceName, result);
@@ -263,52 +259,52 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi, RankP
         return journeySummaries;
     }
 
-    @Override
-    public ResponseEntity<PlaceRankSummaries> rankPlacesToLive(@Valid RankPlacesToLiveStubBody body) {
-        // To save having to make API call each time (could geet chanrged), just provide some mock data
-        PlaceRankSummaries placeRankSummaries = new PlaceRankSummaries();
-        placeRankSummaries.add(
-            new PlaceRankSummary()
-                .name("Testville")
-                .success(true)
-                .totalTravelTimePerMonth(2500f)
-                .fastestJourneys(new ArrayList<>() {
-                    {
-                        add(new JourneySummary()
-                            .name("Homeington")
-                            .success(true)
-                            .travelMode(TravelModesEnum.DRIVING)
-                            .travelTime(2000f));
-                        add(new JourneySummary()
-                            .name("Housely")
-                            .success(true)
-                            .travelMode(TravelModesEnum.PUBLIC_TRANSPORT)
-                            .travelTime(500f));
-                    }
-                })
-        );
-        placeRankSummaries.add(
-            new PlaceRankSummary()
-                .name("Stubhampton")
-                .success(true)
-                .totalTravelTimePerMonth(2750f)
-                .fastestJourneys(new ArrayList<>() {
-                    {
-                        add(new JourneySummary()
-                            .name("Homeington")
-                            .success(true)
-                            .travelMode(TravelModesEnum.DRIVING)
-                            .travelTime(1250f));
-                        add(new JourneySummary()
-                            .name("Housely")
-                            .success(true)
-                            .travelMode(TravelModesEnum.PUBLIC_TRANSPORT)
-                            .travelTime(1500f));
-                    }
-                })
-        );
-        return new ResponseEntity<PlaceRankSummaries>(placeRankSummaries, HttpStatus.OK);
-    }
+    // @Override
+    // public ResponseEntity<PlaceRankSummaries> rankPlacesToLive(@Valid RankPlacesToLiveRequest body) {
+    //     // To save having to make API call each time (could geet chanrged), just provide some mock data
+    //     PlaceRankSummaries placeRankSummaries = new PlaceRankSummaries();
+    //     placeRankSummaries.add(
+    //         new PlaceRankSummary()
+    //             .name("Testville")
+    //             .success(true)
+    //             .totalTravelTimePerMonth(2500f)
+    //             .fastestJourneys(new ArrayList<>() {
+    //                 {
+    //                     add(new JourneySummary()
+    //                         .name("Homeington")
+    //                         .success(true)
+    //                         .travelMode(TravelModesEnum.DRIVING)
+    //                         .travelTime(2000f));
+    //                     add(new JourneySummary()
+    //                         .name("Housely")
+    //                         .success(true)
+    //                         .travelMode(TravelModesEnum.PUBLIC_TRANSPORT)
+    //                         .travelTime(500f));
+    //                 }
+    //             })
+    //     );
+    //     placeRankSummaries.add(
+    //         new PlaceRankSummary()
+    //             .name("Stubhampton")
+    //             .success(true)
+    //             .totalTravelTimePerMonth(2750f)
+    //             .fastestJourneys(new ArrayList<>() {
+    //                 {
+    //                     add(new JourneySummary()
+    //                         .name("Homeington")
+    //                         .success(true)
+    //                         .travelMode(TravelModesEnum.DRIVING)
+    //                         .travelTime(1250f));
+    //                     add(new JourneySummary()
+    //                         .name("Housely")
+    //                         .success(true)
+    //                         .travelMode(TravelModesEnum.PUBLIC_TRANSPORT)
+    //                         .travelTime(1500f));
+    //                 }
+    //             })
+    //     );
+    //     return new ResponseEntity<PlaceRankSummaries>(placeRankSummaries, HttpStatus.OK);
+    // }
 
     // TODO move to helper class
     // Converts to this API enum to Google Maps enum value
