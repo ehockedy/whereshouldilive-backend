@@ -10,6 +10,7 @@ WSIL-backend requires an `application.properties` file to exist in `src/main/res
 ```
 api.key=GOOGLE_MAPS_API_KEY
 ```
+Alternatively, the API key can be read from an envirnment variable named WSIL_GMAPS_API_KEY
 
 ## Development
 Validate Swagger:

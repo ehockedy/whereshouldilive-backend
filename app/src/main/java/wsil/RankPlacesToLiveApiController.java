@@ -54,7 +54,11 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi {
 
     @PostConstruct
     public void setup() {
-        this.googleMapsApiHandler = new GoogleMapsApiHandler(this.apiKey);
+        // Read api key from environment variable - takes precedence over key in application.properties file
+        String apiKeyEnvVar = System.getenv("WSIL_GMAPS_API_KEY");
+        String apiKey = apiKeyEnvVar != null ? apiKeyEnvVar : this.apiKey;
+
+        this.googleMapsApiHandler = new GoogleMapsApiHandler(apiKey);
     }
 
     // @Override
