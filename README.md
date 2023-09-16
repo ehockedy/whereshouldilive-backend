@@ -25,13 +25,14 @@ Generate Swagger:
 Build:
 ```
 ./gradlew build
+./gradlew build -Pserverless // If building for AWS Lambda
 ```
 
 Run:
 ``` 
 ./gradlew run
 ``` 
-The server should start on port 8080
+If build in server mode, the server should start on port 8080
 
 ## Example Query body
 ```
