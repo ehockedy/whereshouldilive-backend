@@ -82,9 +82,19 @@ openApiGenerate {
     ])
 }
 
+// https://github.com/awslabs/aws-serverless-java-container/blob/main/samples/springboot3/pet-store/build.gradle#L19
 task buildZip(type: Zip) {
-    into('lib') {
-        from(jar)
-        from(configurations.runtimeClasspath)
+  from compileJava
+  from processResources
+  into('lib') {
+    from(configurations.compileClasspath) {
+      exclude 'tomcat-embed-*'
+    }
+  }
+}
+
+build {
+    dependsOn {
+         buildZip
     }
 }
