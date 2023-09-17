@@ -43,8 +43,10 @@ application {
     // Define the main class for the application.
     if (isServerless) {
         // Main class for AWS Lambda
+        println 'Building entrypoint for serverless application'
         mainClass = 'wsil.StreamLambdaHandler'
     } else {
+        println 'Building entrypoint for server application'
         mainClass = 'wsil.WhereShouldILive'
     }
 }
