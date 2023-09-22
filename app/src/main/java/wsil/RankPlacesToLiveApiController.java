@@ -48,16 +48,12 @@ import openapi.gen.model.LatLng;
 public class RankPlacesToLiveApiController implements RankPlacesToLiveApi {
     private static final Logger logger = LoggerFactory.getLogger(RankPlacesToLiveApiController.class);
 
-    @Value("${api.key}")
-    private String apiKey;
     private GoogleMapsApiHandler googleMapsApiHandler;
 
     @PostConstruct
     public void setup() {
-        // Read api key from environment variable - takes precedence over key in application.properties file
-        String apiKeyEnvVar = System.getenv("WSIL_GMAPS_API_KEY");
-        String apiKey = apiKeyEnvVar != null ? apiKeyEnvVar : this.apiKey;
-
+        // Read api key from environment variable
+        String apiKey = System.getenv("GOOGLE_MAPS_API_KEY");
         this.googleMapsApiHandler = new GoogleMapsApiHandler(apiKey);
     }
 

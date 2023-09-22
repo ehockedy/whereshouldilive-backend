@@ -6,11 +6,7 @@ Backend code for the Where Should I Live? web application. This service provides
 - The travel duration values are obtained using the Google Maps API. The `placesToLive` and `importantPlaces` arrays take any place name or location ID that can be resolved in Google Maps. See https://developers.google.com/maps/documentation/distance-matrix
 
 ## Installation
-WSIL-backend requires an `application.properties` file to exist in `src/main/resources`. This holds config required to run the app, and must contain the following config:
-```
-api.key=GOOGLE_MAPS_API_KEY
-```
-Alternatively, the API key can be read from an envirnment variable named WSIL_GMAPS_API_KEY
+WSIL-backend requires an environment variable `GOOGLE_MAPS_API_KEY` file to exist, which contains the Google Mapsi API key.
 
 ## Development
 Validate Swagger:
