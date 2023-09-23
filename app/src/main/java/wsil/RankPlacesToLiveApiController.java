@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.google.maps.errors.ApiException;
@@ -58,6 +59,7 @@ public class RankPlacesToLiveApiController implements RankPlacesToLiveApi {
     }
 
     // @Override
+    @CrossOrigin(origins = "*")
     public ResponseEntity<PlaceRankSummaries> rankPlacesToLive(@Valid RankPlacesToLiveRequest body) {
         // Extract a list of just the ids and ttpms
         List<String> placesToLive = body.getPlacesToLive();
